@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>富邦悍將官方售票網 | Fubon Guardians Ticketing Official Website</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter & Noto Sans TC -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        guardians: {
+                            blue: '#002D62',       /* 湛藍色 */
+                            lightBlue: '#1D4ED8',  /* 亮藍 */
+                            darkBlue: '#001A38',   /* 深海藍 */
+                            silver: '#94A3B8',     /* 銀灰色 */
+                            accent: '#F59E0B',     /* 悍將金/橘亮點 */
+                            hot: '#EF4444'         /* 熱區紅 */
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Noto Sans TC"', 'Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom animations & smooth transitions */
+        .glass-nav {
+            background: rgba(0, 45, 98, 0.92);
+            backdrop-filter: blur(10px);
+        }
+        .seat-badge {
+            transition: all 0.2s ease;
+        }
+        .seat-badge:hover:not(.sold) {
+            transform: scale(1.15);
+            z-index: 10;
+        }
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        .animate-pulse-slow {
+            animation: pulse-slow 3s infinite;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col selection:bg-blue-600 selection:text-white">
+
+    <!-- TOP NOTIFICATION BANNER -->
+    <div class="bg-gradient-to-r from-blue-900 via-indigo-900 to-blue-900 text-xs sm:text-sm py-2 px-4 text-center border-b border-blue-800/60 flex items-center justify-center gap-2 relative z-50">
+        <span class="bg-guardians-accent text-slate-950 font-bold px-2 py-0.5 rounded text-xs uppercase tracking-wider animate-bounce">公告</span>
+        <span>🔥 2026悍將主場例行賽門票全面熱賣中！單局全壘打大賞活動同步開跑！</span>
+        <button onclick="switchTab('schedule')" class="underline hover:text-blue-300 font-semibold ml-2 hidden sm:inline-block">立即搶票 &rarr;</button>
+    </div>
+
+    <!-- NAVBAR -->
+    <header class="sticky top-0 z-40 glass-nav border-b border-blue-900/40 shadow-xl">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <!-- Brand Logo -->
+            <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('home')">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-blue-900 flex items-center justify-center border-2 border-slate-300 shadow-lg shadow-blue-900/50">
+                    <span class="text-white font-black text-2xl tracking-tighter">F</span>
+                </div>
+                <div>
+                    <div class="text-xs tracking-widest text-slate-300 font-semibold">FUBON GUARDIANS</div>
+                    <div class="text-lg sm:text-xl font-black text-white tracking-wide">官方售票網 <span class="text-xs bg-blue-600 px-1.5 py-0.5 rounded text-white font-normal">SIMULATOR</span></div>
+                </div>
+            </div>
+
+            <!-- Desktop Navigation Links -->
+            <nav class="hidden md:flex items-center gap-1 lg:gap-2">
+                <button onclick="switchTab('home')" id="nav-home" class="nav-btn px-4 py-2 rounded-lg font-medium text-sm transition-all bg-blue-700/80 text-white shadow">
+                    <i class="fa-solid fa-house mr-1.5"></i> 首頁
+                </button>
+                <button onclick="switchTab('schedule')" id="nav-schedule" class="nav-btn px-4 py-2 rounded-lg font-medium text-sm transition-all text-slate-300 hover:text-white hover:bg-blue-900/50">
+                    <i class="fa-solid fa-calendar-days mr-1.5"></i> 賽程與購票
+                </button>
+                <button onclick="switchTab('cart')" id="nav-cart" class="nav-btn px-4 py-2 rounded-lg font-medium text-sm transition-all text-slate-300 hover:text-white hover:bg-blue-900/50 relative">
+                    <i class="fa-solid fa-cart-shopping mr-1.5"></i> 購物車
+                    <span id="cart-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center hidden">0</span>
+                </button>
+                <button onclick="switchTab('orders')" id="nav-orders" class="nav-btn px-4 py-2 rounded-lg font-medium text-sm transition-all text-slate-300 hover:text-white hover:bg-blue-900/50">
+                    <i class="fa-solid fa-ticket mr-1.5"></i> 訂單查詢
+                </button>
+            </nav>
+
+            <!-- User Quick Actions & Mobile Hamburger -->
+            <div class="flex items-center gap-3">
+                <button onclick="openMemberModal()" class="hidden sm:flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3.5 py-2 rounded-lg text-xs font-semibold text-slate-200 transition-all">
+                    <i class="fa-solid fa-user-circle text-blue-400 text-base"></i>
+                    <span id="user-status-text">會員登入 / 註冊</span>
+                </button>
+                <button onclick="toggleMobileMenu()" class="md:hidden text-slate-200 hover:text-white p-2">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Drawer -->
+        <div id="mobile-menu" class="hidden md:hidden bg-slate-900 border-b border-blue-900/50 px-4 pt-2 pb-4 space-y-2">
+            <button onclick="switchTab('home'); toggleMobileMenu();" class="w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-900/40 text-slate-200 flex items-center gap-2">
+                <i class="fa-solid fa-house text-blue-400"></i> 首頁
+            </button>
+            <button onclick="switchTab('schedule'); toggleMobileMenu();" class="w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-900/40 text-slate-200 flex items-center gap-2">
+                <i class="fa-solid fa-calendar-days text-blue-400"></i> 賽程與購票
+            </button>
+            <button onclick="switchTab('cart'); toggleMobileMenu();" class="w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-900/40 text-slate-200 flex items-center gap-2 justify-between">
+                <span class="flex items-center gap-2"><i class="fa-solid fa-cart-shopping text-blue-400"></i> 購物車</span>
+                <span id="mobile-cart-count" class="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full hidden">0</span>
+            </button>
+            <button onclick="switchTab('orders'); toggleMobileMenu();" class="w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-900/40 text-slate-200 flex items-center gap-2">
+                <i class="fa-solid fa-ticket text-blue-400"></i> 訂單查詢
+            </button>
+            <button onclick="openMemberModal(); toggleMobileMenu();" class="w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium bg-blue-800/50 text-slate-100 flex items-center gap-2">
+                <i class="fa-solid fa-user-circle text-blue-400"></i> 會員登入 / 註冊
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- ==================== TAB 1: HOME ==================== -->
+        <section id="tab-home" class="space-y-8">
+            <!-- Hero Carousel / Banner -->
+            <div class="relative rounded-3xl overflow-hidden bg-gradient-to-r from-blue-900 via-blue-950 to-slate-900 border border-blue-800/50 shadow-2xl">
+                <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(29,78,216,0.3),transparent_70%)]"></div>
+                <div class="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center p-8 sm:p-12 lg:p-16">
+                    <div class="lg:col-span-7 space-y-6">
+                        <div class="inline-flex items-center gap-2 bg-blue-800/60 border border-blue-600/40 px-3 py-1 rounded-full text-xs font-semibold text-blue-200">
+                            <span class="w-2 h-2 rounded-full bg-blue-400 animate-ping"></span>
+                            NEW ERA 2026 SEASON
+                        </div>
+                        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-none">
+                            悍將主場 <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-sky-200 to-white">全面點燃</span>
+                        </h1>
+                        <p class="text-slate-300 text-sm sm:text-base leading-relaxed max-w-xl">
+                            新莊棒球場主場賽事線上售票系統。湛藍出擊，悍動全場！立即選購內野熱區、悍將席及超值家庭席，與我們一起吶喊應援！
+                        </p>
+                        <div class="flex flex-wrap gap-4 pt-2">
+                            <button onclick="switchTab('schedule')" class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold px-8 py-4 rounded-xl shadow-lg shadow-blue-600/40 transition-all transform hover:-translate-y-0.5 flex items-center gap-3 text-base">
+                                <i class="fa-solid fa-ticket"></i> 立即開始購票
+                            </button>
+                            <button onclick="scrollToAnnouncements()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold px-6 py-4 rounded-xl border border-slate-700 transition-all flex items-center gap-2 text-base">
+                                <i class="fa-solid fa-bullhorn"></i> 購票公告
+                            </button>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-5 relative flex justify-center">
+                        <div class="w-full max-w-md bg-slate-900/80 backdrop-blur-md rounded-2xl border border-blue-500/30 p-6 shadow-2xl space-y-4">
+                            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                                <span class="text-xs font-bold text-blue-400 uppercase tracking-widest"><i class="fa-solid fa-fire mr-1 text-red-500"></i> 熱門強檔賽事</span>
+                                <span class="text-xs text-slate-400">新莊棒球場</span>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="bg-blue-950/60 hover:bg-blue-900/80 transition-all rounded-xl p-4 border border-blue-800/40 cursor-pointer flex items-center justify-between" onclick="quickSelectGame('G20260501')">
+                                    <div class="space-y-1">
+                                        <div class="text-xs text-slate-400">05/01 (五) 18:35</div>
+                                        <div class="font-bold text-white flex items-center gap-2">
+                                            <span class="text-blue-400">富邦悍將</span> vs <span>樂天桃猿</span>
+                                        </div>
+                                    </div>
+                                    <span class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow">搶票</span>
+                                </div>
+                                <div class="bg-blue-950/60 hover:bg-blue-900/80 transition-all rounded-xl p-4 border border-blue-800/40 cursor-pointer flex items-center justify-between" onclick="quickSelectGame('G20260502')">
+                                    <div class="space-y-1">
+                                        <div class="text-xs text-slate-400">05/02 (六) 17:05</div>
+                                        <div class="font-bold text-white flex items-center gap-2">
+                                            <span class="text-blue-400">富邦悍將</span> vs <span>中信兄弟</span>
+                                        </div>
+                                    </div>
+                                    <span class="bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow animate-pulse">熱賣中</span>
+                                </div>
+                                <div class="bg-blue-950/60 hover:bg-blue-900/80 transition-all rounded-xl p-4 border border-blue-800/40 cursor-pointer flex items-center justify-between" onclick="quickSelectGame('G20260503')">
+                                    <div class="space-y-1">
+                                        <div class="text-xs text-slate-400">05/03 (日) 17:05</div>
+                                        <div class="font-bold text-white flex items-center gap-2">
+                                            <span class="text-blue-400">富邦悍將</span> vs <span>味全龍</span>
+                                        </div>
+                                    </div>
+                                    <span class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow">搶票</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Highlights / Quick Stats -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 text-xl font-bold">
+                        <i class="fa-solid fa-location-dot"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-400 font-medium">主場球場</div>
+                        <div class="text-lg font-bold text-white">新莊棒球場</div>
+                    </div>
+                </div>
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 text-xl font-bold">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-400 font-medium">官方售票</div>
+                        <div class="text-lg font-bold text-white">實名制與電子票券</div>
+                    </div>
+                </div>
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 text-xl font-bold">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-400 font-medium">快速取票</div>
+                        <div class="text-lg font-bold text-white">Fubon App / 超商</div>
+                    </div>
+                </div>
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 text-xl font-bold">
+                        <i class="fa-solid fa-headset"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-400 font-medium">客服專線</div>
+                        <div class="text-lg font-bold text-white">02-8991-XXXX</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Announcements & News Section -->
+            <div id="announcements-section" class="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-4">
+                <!-- Announcements List -->
+                <div class="lg:col-span-2 bg-slate-900/80 border border-slate-800 rounded-2xl p-6 space-y-6">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-bullhorn text-blue-500"></i> 最新購票公告
+                        </h3>
+                        <span class="text-xs text-slate-400">共 4 則公告</span>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="p-4 rounded-xl bg-slate-950/60 border border-slate-800/80 hover:border-blue-500/40 transition-all cursor-pointer">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="bg-blue-600/20 text-blue-400 text-xs px-2.5 py-0.5 rounded font-semibold">售票辦法</span>
+                                <span class="text-xs text-slate-500">2026-04-15</span>
+                            </div>
+                            <h4 class="font-bold text-white text-base hover:text-blue-300 transition-colors">【2026悍將主場】5月份主場例行賽門票全面開賣公告</h4>
+                            <p class="text-xs text-slate-400 mt-1 line-clamp-2">5月份新莊棒球場主場賽事門票將於4月20日中午12:30起全面開放悍將家人會員預售與全面開賣...</p>
+                        </div>
+                        <div class="p-4 rounded-xl bg-slate-950/60 border border-slate-800/80 hover:border-blue-500/40 transition-all cursor-pointer">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="bg-amber-600/20 text-amber-400 text-xs px-2.5 py-0.5 rounded font-semibold">活動優惠</span>
+                                <span class="text-xs text-slate-500">2026-04-10</span>
+                            </div>
+                            <h4 class="font-bold text-white text-base hover:text-blue-300 transition-colors">【悍將應援】湛藍球衣主題日 內野熱區購票贈送應援毛巾</h4>
+                            <p class="text-xs text-slate-400 mt-1 line-clamp-2">凡購買5月份指定主題日「湛藍出擊」內野熱區門票者，入場即可憑票根兌換限定應援毛巾一條...</p>
+                        </div>
+                        <div class="p-4 rounded-xl bg-slate-950/60 border border-slate-800/80 hover:border-blue-500/40 transition-all cursor-pointer">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="bg-emerald-600/20 text-emerald-400 text-xs px-2.5 py-0.5 rounded font-semibold">入場規範</span>
+                                <span class="text-xs text-slate-500">2026-04-01</span>
+                            </div>
+                            <h4 class="font-bold text-white text-base hover:text-blue-300 transition-colors">【球場須知】新莊棒球場電子票券驗票入場全面升級說明</h4>
+                            <p class="text-xs text-slate-400 mt-1 line-clamp-2">為加速進場效率，請球迷朋友提前下載Fubon Guardians官方App並完成會員綁定，出示動態QR Code快速通關...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick FAQ / Support Card -->
+                <div class="bg-gradient-to-br from-blue-900/80 to-slate-900 border border-blue-700/40 rounded-2xl p-6 space-y-6 flex flex-col justify-between">
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-2 text-blue-300 font-bold text-lg">
+                            <i class="fa-solid fa-circle-question"></i> 常見購票 Q&A
+                        </div>
+                        <div class="space-y-3 text-xs sm:text-sm text-slate-300">
+                            <div class="p-3 rounded-lg bg-blue-950/50 border border-blue-800/40">
+                                <div class="font-bold text-white mb-1">Q: 一個帳號一次最多可以買幾張票？</div>
+                                <div class="text-slate-400">每場賽事單一會員帳號限購 4 張門票，身障席另有專屬購票規範。</div>
+                            </div>
+                            <div class="p-3 rounded-lg bg-blue-950/50 border border-blue-800/40">
+                                <div class="font-bold text-white mb-1">Q: 兒童身高購票規定為何？</div>
+                                <div class="text-slate-400">115公分以下兒童可免票入場（不佔位），超過115公分需購票入場。</div>
+                            </div>
+                            <div class="p-3 rounded-lg bg-blue-950/50 border border-blue-800/40">
+                                <div class="font-bold text-white mb-1">Q: 購票後可以退票或換位嗎？</div>
+                                <div class="text-slate-400">比賽日前3天（含）可辦理退票（需收10%手續費），恕不接受換位。</div>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="switchTab('schedule')" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl shadow-lg transition-all text-center">
+                        瀏覽所有賽程與票價
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 2: SCHEDULE & TICKETING ==================== -->
+        <section id="tab-schedule" class="hidden space-y-6">
+            <!-- Section Header -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-2xl sm:text-3xl font-black text-white flex items-center gap-3">
+                            <i class="fa-solid fa-calendar-days text-blue-500"></i> 賽程與購票專區
+                        </h2>
+                        <p class="text-slate-400 text-xs sm:text-sm mt-1">選擇您想觀賞的賽事，點擊「立即購票」進入線上選位系統。</p>
+                    </div>
+                    <!-- Filter Controls -->
+                    <div class="flex flex-wrap items-center gap-3">
+                        <select id="filter-month" onchange="renderScheduleList()" class="bg-slate-800 border border-slate-700 text-slate-200 text-sm rounded-xl px-4 py-2.5 outline-none focus:border-blue-500 font-medium">
+                            <option value="all">全部月份</option>
+                            <option value="05" selected>2026年 5月份</option>
+                            <option value="06">2026年 6月份</option>
+                        </select>
+                        <select id="filter-opponent" onchange="renderScheduleList()" class="bg-slate-800 border border-slate-700 text-slate-200 text-sm rounded-xl px-4 py-2.5 outline-none focus:border-blue-500 font-medium">
+                            <option value="all">全部對手</option>
+                            <option value="中信兄弟">中信兄弟</option>
+                            <option value="樂天桃猿">樂天桃猿</option>
+                            <option value="統一獅">統一獅</option>
+                            <option value="味全龍">味全龍</option>
+                            <option value="台鋼雄鷹">台鋼雄鷹</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Schedule List Container -->
+                <div id="schedule-container" class="space-y-4">
+                    <!-- Dynamic Rendered Schedule Items -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 3: SEAT SELECTION (MODAL / VIEW) ==================== -->
+        <section id="tab-seat" class="hidden space-y-6">
+            <!-- Back & Game Header -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="flex items-center gap-4">
+                    <button onclick="switchTab('schedule')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> 返回賽程
+                    </button>
+                    <div>
+                        <div id="selected-game-title" class="text-xl font-black text-white">富邦悍將 vs 樂天桃猿</div>
+                        <div id="selected-game-meta" class="text-xs text-slate-400 mt-0.5">2026/05/01 (五) 18:35 | 新莊棒球場</div>
+                    </div>
+                </div>
+                <!-- Ticket Price Legend -->
+                <div class="flex flex-wrap items-center gap-4 text-xs bg-slate-950 px-4 py-2 rounded-xl border border-slate-800">
+                    <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-red-600"></span> <span>內野熱區 ($600-$800)</span></div>
+                    <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-blue-600"></span> <span>內野一般席 ($400-$500)</span></div>
+                    <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-600"></span> <span>身障席 ($300)</span></div>
+                    <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-slate-700"></span> <span>已售出</span></div>
+                </div>
+            </div>
+
+            <!-- Seat Selection Interactive Area -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Ballpark Map & Zones -->
+                <div class="lg:col-span-8 bg-slate-900/80 border border-slate-800 rounded-2xl p-6 space-y-6">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-bold text-white text-base flex items-center gap-2">
+                            <i class="fa-solid fa-map-location-dot text-blue-500"></i> 新莊棒球場視覺化座位圖
+                        </h3>
+                        <div id="zone-breadcrumb" class="text-xs text-blue-400 font-semibold">請點擊下方區塊選擇座位區域</div>
+                    </div>
+
+                    <!-- Visual Stadium SVG / Layout Map -->
+                    <div id="stadium-map-view" class="relative bg-slate-950 rounded-2xl p-6 border border-slate-800 flex flex-col items-center justify-center min-h-[380px]">
+                        <!-- Baseball Field Diamond -->
+                        <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
+                            <div class="w-64 h-64 border-4 border-dashed border-emerald-500 rotate-45 rounded-lg"></div>
+                        </div>
+                        <div class="absolute top-4 text-xs font-bold text-emerald-400 tracking-widest bg-emerald-950/80 px-3 py-1 rounded-full border border-emerald-800">
+                            ⚾ 外野看台 (Outfield)
+                        </div>
+
+                        <!-- Infield Zones Grid -->
+                        <div class="w-full max-w-2xl grid grid-cols-3 gap-4 my-12 relative z-10">
+                            <!-- Left Infield -->
+                            <div onclick="selectZone('L-Hot', '本壘後方熱區 (A-C區)', 800)" class="bg-red-950/60 hover:bg-red-900/80 border border-red-600/50 p-4 rounded-xl text-center cursor-pointer transition-all shadow-lg group">
+                                <div class="text-xs font-bold text-red-400 group-hover:scale-105 transition-transform">三壘側熱區</div>
+                                <div class="text-[11px] text-slate-300 mt-1">熱應援區 $800</div>
+                                <span class="inline-block mt-2 text-[10px] bg-red-600 text-white px-2 py-0.5 rounded">點擊選位</span>
+                            </div>
+                            <!-- Home Plate Hot Zone -->
+                            <div onclick="selectZone('C-Hot', '本壘後方尊爵熱區 (VIP區)', 900)" class="bg-red-900/80 hover:bg-red-800 border-2 border-red-500 p-4 rounded-xl text-center cursor-pointer transition-all shadow-xl group">
+                                <div class="text-xs font-bold text-amber-300 group-hover:scale-105 transition-transform">🔥 本壘後方熱區</div>
+                                <div class="text-[11px] text-slate-200 mt-1">尊爵應援 $900</div>
+                                <span class="inline-block mt-2 text-[10px] bg-red-600 text-white px-2 py-0.5 rounded animate-pulse">熱賣中</span>
+                            </div>
+                            <!-- Right Infield -->
+                            <div onclick="selectZone('R-Hot', '一壘側熱區 (G-I區)', 800)" class="bg-red-950/60 hover:bg-red-900/80 border border-red-600/50 p-4 rounded-xl text-center cursor-pointer transition-all shadow-lg group">
+                                <div class="text-xs font-bold text-red-400 group-hover:scale-105 transition-transform">一壘側熱區</div>
+                                <div class="text-[11px] text-slate-300 mt-1">熱應援區 $800</div>
+                                <span class="inline-block mt-2 text-[10px] bg-red-600 text-white px-2 py-0.5 rounded">點擊選位</span>
+                            </div>
+                        </div>
+
+                        <!-- General Infield Zones -->
+                        <div class="w-full max-w-2xl grid grid-cols-2 gap-4 relative z-10">
+                            <div onclick="selectZone('L-Gen', '三壘側一般席', 500)" class="bg-blue-950/60 hover:bg-blue-900/80 border border-blue-600/50 p-3 rounded-xl text-center cursor-pointer transition-all">
+                                <div class="text-xs font-bold text-blue-300">三壘側一般席</div>
+                                <div class="text-[11px] text-slate-400">票價 $500</div>
+                            </div>
+                            <div onclick="selectZone('R-Gen', '一壘側一般席', 500)" class="bg-blue-950/60 hover:bg-blue-900/80 border border-blue-600/50 p-3 rounded-xl text-center cursor-pointer transition-all">
+                                <div class="text-xs font-bold text-blue-300">一壘側一般席</div>
+                                <div class="text-[11px] text-slate-400">票價 $500</div>
+                            </div>
+                        </div>
+
+                        <div class="absolute bottom-4 text-xs font-bold text-slate-400 tracking-widest bg-slate-900 px-3 py-1 rounded-full border border-slate-800">
+                            🏟️ 新莊棒球場 Home Plate
+                        </div>
+                    </div>
+
+                    <!-- Specific Seats Grid (Appears when zone is selected) -->
+                    <div id="seat-matrix-container" class="hidden space-y-4 pt-4 border-t border-slate-800">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span id="active-zone-title" class="font-bold text-white text-base">本壘後方熱區</span>
+                                <span class="text-xs bg-blue-600/20 text-blue-400 px-2.5 py-0.5 rounded font-semibold" id="active-zone-price">$900 / 張</span>
+                            </div>
+                            <div class="text-xs text-slate-400">請點擊下方綠色/藍色座位進行選位（最多選4張）</div>
+                        </div>
+                        <!-- Seat Matrix generated by JS -->
+                        <div id="seat-grid" class="bg-slate-950 p-4 rounded-xl border border-slate-800 max-h-72 overflow-y-auto space-y-2">
+                            <!-- Rows & Seats -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Selected Cart Sidebar Summary -->
+                <div class="lg:col-span-4 space-y-6">
+                    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 space-y-6 sticky top-28">
+                        <h3 class="font-bold text-white text-base flex items-center gap-2 border-b border-slate-800 pb-3">
+                            <i class="fa-solid fa-cart-shopping text-blue-500"></i> 已選座位清單
+                        </h3>
+                        <div id="selected-seats-list" class="space-y-3 min-h-[140px] max-h-60 overflow-y-auto">
+                            <div class="text-xs text-slate-500 text-center py-8">尚未選擇任何座位，請從左側圖或點選區域選位</div>
+                        </div>
+
+                        <div class="border-t border-slate-800 pt-4 space-y-2">
+                            <div class="flex justify-between text-sm text-slate-400">
+                                <span>張數總計</span>
+                                <span id="summary-count" class="font-bold text-white">0 張</span>
+                            </div>
+                            <div class="flex justify-between text-base font-bold text-white">
+                                <span>總金額</span>
+                                <span id="summary-total" class="text-blue-400 text-xl">NT$ 0</span>
+                            </div>
+                        </div>
+
+                        <button onclick="proceedToCart()" id="btn-add-cart" disabled class="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 disabled:text-slate-500 text-white font-bold py-3.5 rounded-xl shadow-lg transition-all text-center flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-arrow-right"></i> 加入購物車並結帳
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 4: SHOPPING CART & CHECKOUT ==================== -->
+        <section id="tab-cart" class="hidden space-y-6">
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                    <h2 class="text-2xl font-black text-white flex items-center gap-3">
+                        <i class="fa-solid fa-cart-shopping text-blue-500"></i> 購物車與結帳模擬
+                    </h2>
+                    <span id="cart-item-count-badge" class="text-xs bg-blue-600 text-white px-3 py-1 rounded-full font-semibold">0 筆票券</span>
+                </div>
+
+                <div id="cart-content-area" class="space-y-6">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 5: MEMBER ORDERS LOOKUP ==================== -->
+        <section id="tab-orders" class="hidden space-y-6">
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6">
+                <div class="border-b border-slate-800 pb-4">
+                    <h2 class="text-2xl font-black text-white flex items-center gap-3">
+                        <i class="fa-solid fa-ticket text-blue-500"></i> 會員訂單查詢與電子票券
+                    </h2>
+                    <p class="text-slate-400 text-xs sm:text-sm mt-1">查詢您已成立的悍將主場門票訂單，並可出示動態QR Code入場。</p>
+                </div>
+
+                <!-- Search Input Bar -->
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <input type="text" id="order-search-input" placeholder="請輸入訂單編號 (例如: FG2026...)" class="flex-grow bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-100 outline-none focus:border-blue-500 font-medium">
+                    <button onclick="searchOrders()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-3 rounded-xl shadow transition-all flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-magnifying-glass"></i> 查詢訂單
+                    </button>
+                </div>
+
+                <!-- Orders List Results -->
+                <div id="orders-result-container" class="space-y-4 pt-2">
+                    <!-- Rendered dynamically -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-slate-950 border-t border-blue-900/40 text-slate-400 text-xs sm:text-sm py-10 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div class="space-y-3">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-black">F</div>
+                    <span class="text-white font-bold text-base">富邦悍將官方售票網</span>
+                </div>
+                <p class="text-slate-400 text-xs leading-relaxed">
+                    Fubon Guardians Official Ticketing System. 湛藍狂潮，悍動新莊。提供安全、便捷的棒球賽事線上購票與電子票券服務。
+                </p>
+            </div>
+            <div>
+                <h4 class="text-white font-bold mb-3 text-sm">快速連結</h4>
+                <ul class="space-y-2 text-xs">
+                    <li><a href="#" onclick="switchTab('home')" class="hover:text-blue-400 transition-colors">首頁公告</a></li>
+                    <li><a href="#" onclick="switchTab('schedule')" class="hover:text-blue-400 transition-colors">賽程與購票</a></li>
+                    <li><a href="#" onclick="switchTab('orders')" class="hover:text-blue-400 transition-colors">訂單查詢</a></li>
+                    <li><a href="#" onclick="openMemberModal()" class="hover:text-blue-400 transition-colors">會員專區</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-white font-bold mb-3 text-sm">主場資訊</h4>
+                <ul class="space-y-2 text-xs text-slate-400">
+                    <li>球場地址：新北市新莊區和興街66號</li>
+                    <li>交通資訊：捷運新莊站 1號出口步行約10分鐘</li>
+                    <li>客服信箱：service@fubonguardians.com</li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-white font-bold mb-3 text-sm">官方社群</h4>
+                <div class="flex gap-3 pt-1">
+                    <a href="#" class="w-9 h-9 rounded-xl bg-slate-900 hover:bg-blue-600 flex items-center justify-center text-white transition-colors border border-slate-800"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#" class="w-9 h-9 rounded-xl bg-slate-900 hover:bg-blue-600 flex items-center justify-center text-white transition-colors border border-slate-800"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#" class="w-9 h-9 rounded-xl bg-slate-900 hover:bg-blue-600 flex items-center justify-center text-white transition-colors border border-slate-800"><i class="fa-brands fa-youtube"></i></a>
+                    <a href="#" class="w-9 h-9 rounded-xl bg-slate-900 hover:bg-blue-600 flex items-center justify-center text-white transition-colors border border-slate-800"><i class="fa-brands fa-line"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-slate-900 mt-8 pt-6 text-center text-slate-600 text-xs">
+            &copy; 2026 Fubon Guardians Baseball Club. All Rights Reserved. (Ticketing Official Website Simulation)
+        </div>
+    </footer>
+
+    <!-- ==================== MODALS ==================== -->
+
+    <!-- Member Login Modal -->
+    <div id="member-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-blue-900/60 rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-6 shadow-2xl relative">
+            <button onclick="closeMemberModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white text-xl">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold text-lg">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-black text-white">悍將家人會員登入</h3>
+                    <p class="text-xs text-slate-400">登入會員以享有優先購票及紅利回饋</p>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">會員手機號碼 / 信箱</label>
+                    <input type="text" id="login-account" value="0912345678" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-100 outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">會員密碼</label>
+                    <input type="password" id="login-password" value="password123" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-100 outline-none focus:border-blue-500">
+                </div>
+                <button onclick="performLogin()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl shadow-lg transition-all text-center">
+                    登入系統
+                </button>
+            </div>
+            <div class="text-center text-xs text-slate-500">
+                還不是會員？ <a href="#" class="text-blue-400 underline font-semibold">立即註冊成為悍將家人</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR Code Modal -->
+    <div id="qrcode-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-blue-900/60 rounded-3xl max-w-sm w-full p-6 sm:p-8 space-y-6 shadow-2xl relative text-center">
+            <button onclick="closeQrCodeModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white text-xl">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="space-y-1">
+                <span class="bg-blue-600/20 text-blue-400 text-xs px-3 py-1 rounded-full font-bold">電子動態票券</span>
+                <h3 id="qr-modal-title" class="text-lg font-black text-white mt-2">富邦悍將 vs 中信兄弟</h3>
+                <p id="qr-modal-seat" class="text-xs text-slate-400">內野熱區 A區 12排 05號</p>
+            </div>
+            <!-- Simulated QR Code graphic -->
+            <div class="bg-white p-6 rounded-2xl inline-block shadow-lg mx-auto">
+                <div class="w-48 h-48 bg-slate-900 flex items-center justify-center text-white font-mono text-xs rounded-lg relative overflow-hidden">
+                    <div class="absolute inset-2 border-4 border-dashed border-blue-500 flex flex-col items-center justify-center p-2 text-center">
+                        <i class="fa-solid fa-qrcode text-6xl text-blue-400 mb-2"></i>
+                        <span class="text-[10px] text-slate-300">FUBON-TICKET-2026-PASS</span>
+                    </div>
+                </div>
+            </div>
+            <div class="text-xs text-slate-400">
+                請於新莊棒球場驗票口出示此QR Code快速掃描入場
+            </div>
+            <button onclick="closeQrCodeModal()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-3 rounded-xl transition-all">
+                關閉
+            </button>
+        </div>
+    </div>
+
+    <!-- Message Notification Box -->
+    <div id="toast-msg" class="fixed bottom-6 right-6 z-50 transform translate-y-24 opacity-0 transition-all duration-300 bg-slate-900 border border-blue-500/60 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-xl"></i>
+        <div>
+            <div id="toast-title" class="font-bold text-sm">操作成功</div>
+            <div id="toast-desc" class="text-xs text-slate-300">票券已成功加入購物車</div>
+        </div>
+    </div>
+
+    <!-- ==================== JAVASCRIPT APPLICATION LOGIC ==================== -->
+    <script>
+        // Mock Database of Games
+        const scheduleData = [
+            {
+                id: 'G20260501',
+                date: '2026-05-01',
+                time: '18:35',
+                dayOfWeek: '五',
+                opponent: '樂天桃猿',
+                homeAway: '主場',
+                stadium: '新莊棒球場',
+                theme: '湛藍出擊 主題日',
+                status: '热卖中',
+                statusColor: 'bg-red-600 text-white animate-pulse'
+            },
+            {
+                id: 'G20260502',
+                date: '2026-05-02',
+                time: '17:05',
+                dayOfWeek: '六',
+                opponent: '中信兄弟',
+                homeAway: '主場',
+                stadium: '新莊棒球場',
+                theme: '球迷感恩日',
+                status: '熱賣中',
+                statusColor: 'bg-red-600 text-white animate-pulse'
+            },
+            {
+                id: 'G20260503',
+                date: '2026-05-03',
+                time: '17:05',
+                dayOfWeek: '日',
+                opponent: '味全龍',
+                homeAway: '主場',
+                stadium: '新莊棒球場',
+                theme: '悍將英雄日',
+                status: '熱賣中',
+                statusColor: 'bg-blue-600 text-white'
+            },
+            {
+                id: 'G20260515',
+                date: '2026-05-15',
+                time: '18:35',
+                dayOfWeek: '五',
+                opponent: '統一獅',
+                homeAway: '主場',
+                stadium: '新莊棒球場',
+                theme: '平日狂熱夜',
+                status: '即將開賣',
+                statusColor: 'bg-slate-700 text-slate-300'
+            },
+            {
+                id: 'G20260516',
+                date: '2026-05-16',
+                time: '17:05',
+                dayOfWeek: '六',
+                opponent: '台鋼雄鷹',
+                homeAway: '主場',
+                stadium: '新莊棒球場',
+                theme: '童心派對',
+                status: '即將開賣',
+                statusColor: 'bg-slate-700 text-slate-300'
+            }
+        ];
+
+        // Application State
+        let currentTab = 'home';
+        let currentUser = null; // { name: '陳小悍', phone: '0912345678' }
+        let currentGame = null;
+        let selectedZoneInfo = null; // { code, name, price }
+        let selectedSeats = []; // [{row, col, price, zoneName}]
+        let cartItems = []; // [{gameId, gameTitle, gameDate, seats, total}]
+        let ordersList = [
+            {
+                orderId: 'FG2026050101',
+                gameTitle: '富邦悍將 vs 樂天桃猿',
+                gameDate: '2026/05/01 (五) 18:35',
+                stadium: '新莊棒球場',
+                seats: [{row: 'A', col: '05', price: 900, zoneName: '本壘後方尊爵熱區'}, {row: 'A', col: '06', price: 900, zoneName: '本壘後方尊爵熱區'}],
+                totalAmount: 1800,
+                status: '已付款 / 待使用',
+                bookingTime: '2026-04-18 10:24'
+            }
+        ];
+
+        // Tab Switching Logic
+        function switchTab(tabId) {
+            currentTab = tabId;
+            const tabs = ['home', 'schedule', 'seat', 'cart', 'orders'];
+            tabs.forEach(t => {
+                const el = document.getElementById(`tab-${t}`);
+                if (el) {
+                    if (t === tabId) {
+                        el.classList.remove('hidden');
+                    } else {
+                        el.classList.add('hidden');
+                    }
+                }
+                const navBtn = document.getElementById(`nav-${t}`);
+                if (navBtn) {
+                    if (t === tabId) {
+                        navBtn.className = 'nav-btn px-4 py-2 rounded-lg font-medium text-sm transition-all bg-blue-700/80 text-white shadow';
+                    } else {
+                        navBtn.className = 'nav-btn px-4 py-2 rounded-lg font-medium text-sm transition-all text-slate-300 hover:text-white hover:bg-blue-900/50';
+                    }
+                }
+            });
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            if (tabId === 'schedule') {
+                renderScheduleList();
+            } else if (tabId === 'cart') {
+                renderCart();
+            } else if (tabId === 'orders') {
+                renderOrders();
+            }
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        function scrollToAnnouncements() {
+            document.getElementById('announcements-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Render Schedule List
+        function renderScheduleList() {
+            const monthFilter = document.getElementById('filter-month').value;
+            const oppFilter = document.getElementById('filter-opponent').value;
+            const container = document.getElementById('schedule-container');
+
+            let filtered = scheduleData.filter(game => {
+                const m = game.date.split('-')[1];
+                const matchMonth = (monthFilter === 'all' || m === monthFilter);
+                const matchOpp = (oppFilter === 'all' || game.opponent === oppFilter);
+                return matchMonth && matchOpp;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="text-center py-12 text-slate-500">找不到符合條件的賽事，請重新選擇篩選條件。</div>`;
+                return;
+            }
+
+            container.innerHTML = filtered.map(game => `
+                <div class="bg-slate-950/70 border border-slate-800/90 hover:border-blue-500/50 rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all">
+                    <div class="flex items-center gap-4">
+                        <div class="w-16 h-16 rounded-xl bg-blue-950 border border-blue-800/60 flex flex-col items-center justify-center text-blue-400 font-bold shrink-0">
+                            <span class="text-xs text-slate-400">${game.date.split('-')[1]}/${game.date.split('-')[2]}</span>
+                            <span class="text-sm font-black">(${game.dayOfWeek})</span>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs px-2 py-0.5 rounded font-bold ${game.statusColor}">${game.status}</span>
+                                <span class="text-xs text-slate-400">${game.stadium} | ${game.time}</span>
+                            </div>
+                            <h4 class="text-lg font-bold text-white flex items-center gap-2">
+                                <span class="text-blue-400">富邦悍將</span> <span class="text-xs text-slate-500">VS</span> <span>${game.opponent}</span>
+                            </h4>
+                            <p class="text-xs text-slate-400"><i class="fa-solid fa-star text-amber-400 mr-1"></i> 主題日：${game.theme}</p>
+                        </div>
+                    </div>
+                    <div>
+                        <button onclick="startTicketing('${game.id}')" class="w-full md:w-auto bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-3 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm">
+                            <i class="fa-solid fa-ticket"></i> 立即購票
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function quickSelectGame(gameId) {
+            startTicketing(gameId);
+        }
+
+        // Start Ticketing Process for a Game
+        function startTicketing(gameId) {
+            currentGame = scheduleData.find(g => g.id === gameId) || scheduleData[0];
+            document.getElementById('selected-game-title').innerText = `富邦悍將 vs ${currentGame.opponent}`;
+            document.getElementById('selected-game-meta').innerText = `${currentGame.date} (${currentGame.dayOfWeek}) ${currentGame.time} | ${currentGame.stadium} - ${currentGame.theme}`;
+            
+            // Reset seats
+            selectedSeats = [];
+            selectedZoneInfo = null;
+            document.getElementById('seat-matrix-container').classList.add('hidden');
+            updateSelectedSummary();
+            switchTab('seat');
+        }
+
+        // Select Zone on Ballpark Map
+        function selectZone(zoneCode, zoneName, price) {
+            selectedZoneInfo = { code: zoneCode, name: zoneName, price: price };
+            document.getElementById('zone-breadcrumb').innerText = `已選擇區域：${zoneName}`;
+            document.getElementById('active-zone-title').innerText = zoneName;
+            document.getElementById('active-zone-price').innerText = `NT$ ${price} / 張`;
+            document.getElementById('seat-matrix-container').classList.remove('hidden');
+
+            renderSeatMatrix(zoneCode, price, zoneName);
+        }
+
+        // Render Mock Seat Matrix (Rows & Seats)
+        function renderSeatMatrix(zoneCode, price, zoneName) {
+            const gridEl = document.getElementById('seat-grid');
+            const rows = ['A', 'B', 'C', 'D'];
+            let html = '';
+
+            rows.forEach(r => {
+                html += `<div class="flex items-center gap-2 mb-2"><span class="text-xs font-bold text-slate-400 w-6">${r}排</span><div class="flex flex-wrap gap-2 flex-grow">`;
+                for (let i = 1; i <= 12; i++) {
+                    const seatNum = i < 10 ? `0${i}` : `${i}`;
+                    // Mock some random sold seats
+                    const isSold = (r === 'A' && (i === 3 || i === 4)) || (r === 'C' && i === 7);
+                    const isSelected = selectedSeats.some(s => s.row === r && s.col === seatNum && s.zoneName === zoneName);
+
+                    if (isSold) {
+                        html += `<button disabled class="w-8 h-8 rounded-lg bg-slate-800 text-slate-600 text-xs font-bold cursor-not-allowed">${seatNum}</button>`;
+                    } else if (isSelected) {
+                        html += `<button onclick="toggleSeat('${r}', '${seatNum}', ${price}, '${zoneName}')" class="w-8 h-8 rounded-lg bg-emerald-500 text-slate-950 text-xs font-bold shadow-lg ring-2 ring-emerald-300 seat-badge">${seatNum}</button>`;
+                    } else {
+                        html += `<button onclick="toggleSeat('${r}', '${seatNum}', ${price}, '${zoneName}')" class="w-8 h-8 rounded-lg bg-blue-700 hover:bg-blue-600 text-white text-xs font-bold seat-badge">${seatNum}</button>`;
+                    }
+                }
+                html += `</div></div>`;
+            });
+            gridEl.innerHTML = html;
+        }
+
+        // Toggle Seat Selection
+        function toggleSeat(row, col, price, zoneName) {
+            const index = selectedSeats.findIndex(s => s.row === row && s.col === col && s.zoneName === zoneName);
+            if (index > -1) {
+                selectedSeats.splice(index, 1);
+            } else {
+                if (selectedSeats.length >= 4) {
+                    showToast('提醒', '每筆訂單最多選擇 4 張票券', 'warning');
+                    return;
+                }
+                selectedSeats.push({ row, col, price, zoneName });
+            }
+            renderSeatMatrix(zoneName === selectedZoneInfo.code ? selectedZoneInfo.code : selectedZoneInfo.code, selectedZoneInfo.price, selectedZoneInfo.name);
+            updateSelectedSummary();
+        }
+
+        // Update Summary & Cart Button
+        function updateSelectedSummary() {
+            const listEl = document.getElementById('selected-seats-list');
+            const countEl = document.getElementById('summary-count');
+            const totalEl = document.getElementById('summary-total');
+            const btnCart = document.getElementById('btn-add-cart');
+
+            countEl.innerText = `${selectedSeats.length} 張`;
+            const total = selectedSeats.reduce((sum, s) => sum + s.price, 0);
+            totalEl.innerText = `NT$ ${total}`;
+
+            if (selectedSeats.length > 0) {
+                btnCart.removeAttribute('disabled');
+                listEl.innerHTML = selectedSeats.map((s, idx) => `
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
+                        <div>
+                            <div class="font-bold text-white">${s.zoneName}</div>
+                            <div class="text-slate-400 mt-0.5">${s.row}排 ${s.col}號 - NT$ ${s.price}</div>
+                        </div>
+                        <button onclick="removeSelectedSeat(${idx})" class="text-slate-500 hover:text-red-400 p-1"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `).join('');
+            } else {
+                btnCart.setAttribute('disabled', 'true');
+                listEl.innerHTML = `<div class="text-xs text-slate-500 text-center py-8">尚未選擇任何座位，請從左側圖或點選區域選位</div>`;
+            }
+        }
+
+        function removeSelectedSeat(index) {
+            selectedSeats.splice(index, 1);
+            if (selectedZoneInfo) {
+                renderSeatMatrix(selectedZoneInfo.code, selectedZoneInfo.price, selectedZoneInfo.name);
+            }
+            updateSelectedSummary();
+        }
+
+        // Proceed to Shopping Cart
+        function proceedToCart() {
+            if (selectedSeats.length === 0) return;
+
+            const cartItem = {
+                cartId: 'C-' + Date.now(),
+                gameId: currentGame.id,
+                gameTitle: `富邦悍將 vs ${currentGame.opponent}`,
+                gameDate: `${currentGame.date} (${currentGame.dayOfWeek}) ${currentGame.time}`,
+                stadium: currentGame.stadium,
+                seats: [...selectedSeats],
+                total: selectedSeats.reduce((sum, s) => sum + s.price, 0)
+            };
+
+            cartItems.push(cartItem);
+            selectedSeats = [];
+            updateCartBadge();
+            showToast('成功', '票券已成功加入購物車！', 'success');
+            switchTab('cart');
+        }
+
+        function updateCartBadge() {
+            const badge = document.getElementById('cart-badge');
+            const mobileBadge = document.getElementById('mobile-cart-count');
+            if (cartItems.length > 0) {
+                badge.innerText = cartItems.length;
+                badge.classList.remove('hidden');
+                mobileBadge.innerText = cartItems.length;
+                mobileBadge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+                mobileBadge.classList.add('hidden');
+            }
+        }
+
+        // Render Cart Content & Checkout Simulator
+        function renderCart() {
+            const container = document.getElementById('cart-content-area');
+            const countBadge = document.getElementById('cart-item-count-badge');
+            countBadge.innerText = `${cartItems.length} 筆票券`;
+
+            if (cartItems.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-16 space-y-4">
+                        <div class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center text-slate-500 text-2xl mx-auto">
+                            <i class="fa-solid fa-cart-shopping"></i>
+                        </div>
+                        <div class="text-slate-400 text-sm font-medium">您的購物車目前是空的</div>
+                        <button onclick="switchTab('schedule')" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-3 rounded-xl shadow text-xs">
+                            前往賽程選票
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            let grandTotal = cartItems.reduce((sum, item) => sum + item.total, 0);
+
+            container.innerHTML = `
+                <div class="space-y-4">
+                    ${cartItems.map((item, index) => `
+                        <div class="bg-slate-950 p-5 rounded-2xl border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div class="space-y-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="bg-blue-600/20 text-blue-400 text-xs px-2.5 py-0.5 rounded font-bold">主場賽事</span>
+                                    <span class="text-xs text-slate-400">${item.gameDate}</span>
+                                </div>
+                                <h4 class="text-base font-bold text-white">${item.gameTitle}</h4>
+                                <div class="flex flex-wrap gap-2 pt-1">
+                                    ${item.seats.map(s => `<span class="bg-slate-900 border border-slate-800 text-slate-300 text-xs px-2.5 py-1 rounded-lg">${s.zoneName} | ${s.row}排 ${s.col}號 (NT$ ${s.price})</span>`).join('')}
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between md:justify-end gap-6 border-t md:border-t-0 pt-4 md:pt-0 border-slate-800">
+                                <div class="text-right">
+                                    <div class="text-xs text-slate-400">小計金額</div>
+                                    <div class="text-lg font-black text-blue-400">NT$ ${item.total}</div>
+                                </div>
+                                <button onclick="removeCartItem(${index})" class="text-slate-500 hover:text-red-400 p-2"><i class="fa-solid fa-trash text-base"></i></button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div class="bg-slate-950 p-6 rounded-2xl border border-slate-800 space-y-6">
+                    <h3 class="font-bold text-white text-base">選擇付款與取票方式</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <label class="border border-blue-500 bg-blue-950/40 p-4 rounded-xl cursor-pointer flex items-center gap-3">
+                            <input type="radio" name="pay-method" checked class="text-blue-600">
+                            <div>
+                                <div class="font-bold text-white text-sm">線上信用卡付款</div>
+                                <div class="text-xs text-slate-400">支援 VISA / MasterCard / JCB</div>
+                            </div>
+                        </label>
+                        <label class="border border-slate-800 bg-slate-900/50 p-4 rounded-xl cursor-pointer flex items-center gap-3 hover:border-slate-700">
+                            <input type="radio" name="pay-method" class="text-blue-600">
+                            <div>
+                                <div class="font-bold text-white text-sm">Apple Pay / Google Pay</div>
+                                <div class="text-xs text-slate-400">快速行動支付</div>
+                            </div>
+                        </label>
+                        <label class="border border-slate-800 bg-slate-900/50 p-4 rounded-xl cursor-pointer flex items-center gap-3 hover:border-slate-700">
+                            <input type="radio" name="pay-method" class="text-blue-600">
+                            <div>
+                                <div class="font-bold text-white text-sm">超商代碼繳費</div>
+                                <div class="text-xs text-slate-400">7-11 / 全家超商繳費</div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="border-t border-slate-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div>
+                            <div class="text-xs text-slate-400">應付總金額 (${cartItems.reduce((acc, i) => acc + i.seats.length, 0)} 張票券)</div>
+                            <div class="text-2xl font-black text-white">NT$ <span class="text-blue-400">${grandTotal}</span></div>
+                        </div>
+                        <button onclick="checkoutCart()" class="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold px-10 py-4 rounded-xl shadow-lg shadow-blue-600/40 transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-lock"></i> 確認結帳並完成購票
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function removeCartItem(index) {
+            cartItems.splice(index, 1);
+            updateCartBadge();
+            renderCart();
+            showToast('提示', '已從購物車移除該筆票券', 'info');
+        }
+
+        // Checkout Cart Simulation
+        function checkoutCart() {
+            if (cartItems.length === 0) return;
+
+            // Move items to ordersList
+            cartItems.forEach(item => {
+                const newOrder = {
+                    orderId: 'FG' + Math.floor(10000000 + Math.random() * 90000000),
+                    gameTitle: item.gameTitle,
+                    gameDate: item.gameDate,
+                    stadium: item.stadium,
+                    seats: item.seats,
+                    totalAmount: item.total,
+                    status: '已付款 / 待使用',
+                    bookingTime: new Date().toISOString().replace('T', ' ').substring(0, 16)
+                };
+                ordersList.unshift(newOrder);
+            });
+
+            cartItems = [];
+            updateCartBadge();
+            showToast('購票成功', '訂單已成立，您可至「訂單查詢」查看電子票券', 'success');
+            switchTab('orders');
+        }
+
+        // Render Orders & Lookup
+        function renderOrders() {
+            const query = document.getElementById('order-search-input').value.trim().toLowerCase();
+            const container = document.getElementById('orders-result-container');
+
+            let filtered = ordersList;
+            if (query) {
+                filtered = ordersList.filter(o => o.orderId.toLowerCase().includes(query) || o.gameTitle.toLowerCase().includes(query));
+            }
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="text-center py-12 text-slate-500">找不到相關訂單記錄。</div>`;
+                return;
+            }
+
+            container.innerHTML = filtered.map(order => `
+                <div class="bg-slate-950 p-6 rounded-2xl border border-slate-800 space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+                        <div class="flex items-center gap-3">
+                            <span class="bg-emerald-600/20 text-emerald-400 text-xs px-2.5 py-0.5 rounded font-bold">${order.status}</span>
+                            <span class="text-xs text-slate-400 font-mono">訂單編號：${order.orderId}</span>
+                        </div>
+                        <span class="text-xs text-slate-500">訂購時間：${order.bookingTime}</span>
+                    </div>
+
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div class="space-y-1">
+                            <h4 class="text-lg font-bold text-white">${order.gameTitle}</h4>
+                            <p class="text-xs text-slate-400"><i class="fa-solid fa-calendar-days mr-1 text-blue-400"></i> ${order.gameDate} | ${order.stadium}</p>
+                            <div class="flex flex-wrap gap-2 pt-2">
+                                ${order.seats.map(s => `<span class="bg-slate-900 border border-slate-800 text-slate-200 text-xs px-3 py-1 rounded-lg">${s.zoneName} - ${s.row}排 ${s.col}號</span>`).join('')}
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between md:justify-end gap-6 border-t md:border-t-0 pt-3 md:pt-0 border-slate-800">
+                            <div class="text-right">
+                                <div class="text-xs text-slate-400">總金額</div>
+                                <div class="text-lg font-black text-blue-400">NT$ ${order.totalAmount}</div>
+                            </div>
+                            <button onclick="openQrCodeModal('${order.gameTitle}', '${order.seats[0]?.zoneName || ''} ${order.seats[0]?.row}排 ${order.seats[0]?.col}號')" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2.5 rounded-xl text-xs shadow transition-all flex items-center gap-2">
+                                <i class="fa-solid fa-qrcode"></i> 出示電子票券
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function searchOrders() {
+            renderOrders();
+        }
+
+        // Modal Controls
+        function openMemberModal() {
+            document.getElementById('member-modal').classList.remove('hidden');
+        }
+        function closeMemberModal() {
+            document.getElementById('member-modal').classList.add('hidden');
+        }
+        function performLogin() {
+            currentUser = { name: '悍將家人會員', phone: '0912345678' };
+            document.getElementById('user-status-text').innerText = currentUser.name;
+            closeMemberModal();
+            showToast('登入成功', '歡迎回來，悍將家人！', 'success');
+        }
+
+        function openQrCodeModal(title, seatInfo) {
+            document.getElementById('qr-modal-title').innerText = title;
+            document.getElementById('qr-modal-seat').innerText = seatInfo;
+            document.getElementById('qrcode-modal').classList.remove('hidden');
+        }
+        function closeQrCodeModal() {
+            document.getElementById('qrcode-modal').classList.add('hidden');
+        }
+
+        // Toast Notification
+        function showToast(title, desc, type = 'success') {
+            const toast = document.getElementById('toast-msg');
+            const titleEl = document.getElementById('toast-title');
+            const descEl = document.getElementById('toast-desc');
+            const iconEl = document.getElementById('toast-icon');
+
+            titleEl.innerText = title;
+            descEl.innerText = desc;
+
+            if (type === 'success') {
+                iconEl.className = 'fa-solid fa-circle-check text-emerald-400 text-xl';
+            } else if (type === 'warning') {
+                iconEl.className = 'fa-solid fa-triangle-exclamation text-amber-400 text-xl';
+            } else {
+                iconEl.className = 'fa-solid fa-circle-info text-blue-400 text-xl';
+            }
+
+            toast.classList.remove('translate-y-24', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-24', 'opacity-0');
+            }, 3500);
+        }
+
+        // Initial setup on load
+        window.onload = function() {
+            // Render initial schedule preview or home state
+            renderScheduleList();
+        }
+    </script>
+</body>
+</html>
